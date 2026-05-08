@@ -74,6 +74,7 @@ export default function ColisPage() {
   const [filterStatut, setFilterStatut] = useState("ALL");
 
   const [filterExpress, setFilterExpress] = useState(false);
+  const [filterDette, setFilterDette] = useState(false);
   const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -173,14 +174,15 @@ export default function ColisPage() {
     const matchStatut = filterStatut === "ALL" || c.statut === filterStatut;
 
     const matchExpress = !filterExpress || (c as any).express === true;
-    return matchSearch && matchStatut && matchExpress;
+    const matchDette = !filterDette || ((c as any).remisEnDette === true && !c.soldePaye);
+    return matchSearch && matchStatut && matchExpress && matchDette;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [search, filterStatut, filterExpress]);
+  useEffect(() => { setPage(1); }, [search, filterStatut, filterExpress, filterDette]);
 
   return (
     <div className="space-y-4">
@@ -237,6 +239,17 @@ export default function ColisPage() {
         >
           Express
         </button>
+        <button
+          type="button"
+          onClick={() => setFilterDette((v) => !v)}
+          className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border transition-colors ${
+            filterDette
+              ? "bg-red-500 text-white border-red-500"
+              : "border-border text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          En dette
+        </button>
       </div>
 
       {/* Cards — mobile only */}
@@ -292,7 +305,11 @@ export default function ColisPage() {
               <div className="flex items-center justify-between">
                 <div className="flex gap-3 text-[10px] font-bold uppercase tracking-wider">
                   <span className={c.avancePaye ? "" : "text-muted-foreground"}>Avance {c.avancePaye ? "✓" : "✗"}</span>
-                  <span className={c.soldePaye ? "" : "text-muted-foreground"}>Solde {c.soldePaye ? "✓" : "✗"}</span>
+                  {(c as any).remisEnDette && !c.soldePaye ? (
+                    <span className="text-red-500">Dette</span>
+                  ) : (
+                    <span className={c.soldePaye ? "" : "text-muted-foreground"}>Solde {c.soldePaye ? "✓" : "✗"}</span>
+                  )}
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" asChild>
@@ -381,9 +398,13 @@ export default function ColisPage() {
                       <span className={c.avancePaye ? "" : "text-muted-foreground"}>
                         Avance {c.avancePaye ? "✓" : "✗"}
                       </span>
-                      <span className={c.soldePaye ? "" : "text-muted-foreground"}>
-                        Solde {c.soldePaye ? "✓" : "✗"}
-                      </span>
+                      {(c as any).remisEnDette && !c.soldePaye ? (
+                        <span className="text-red-500">Dette</span>
+                      ) : (
+                        <span className={c.soldePaye ? "" : "text-muted-foreground"}>
+                          Solde {c.soldePaye ? "✓" : "✗"}
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-center">

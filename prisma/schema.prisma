@@ -169,8 +169,9 @@ model Colis {
   prixTotal  Float   @default(0)
   avance     Float   @default(0)
   solde      Float   @default(0) // = prixTotal - avance
-  avancePaye Boolean @default(false)
-  soldePaye  Boolean @default(false)
+  avancePaye   Boolean @default(false)
+  soldePaye    Boolean @default(false)
+  remisEnDette Boolean @default(false)
 
   // Tarif
   tarifId Int?

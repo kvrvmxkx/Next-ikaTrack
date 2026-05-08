@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   Package, Clock, CheckCircle, XCircle, TrendingUp,
-  CalendarDays, Users, AlertTriangle,
+  CalendarDays, Users, AlertTriangle, AlertCircle,
 } from "lucide-react";
 import { getActiveDestination } from "@/lib/form-settings";
 import KpiCard from "@/components/kpi-card";
@@ -18,6 +18,7 @@ type DashboardData = {
   colis: {
     total: number; enregistre: number; enTransit: number; livre: number;
     annule: number; litige: number; revenusAttendus: number; revenusEncaisses: number;
+    totalDetteActive: number; nbColisEnDette: number;
   };
   agents: { total: number };
   aujourd_hui: { count: number; poids: number };
@@ -131,14 +132,15 @@ export default function DashboardSuperAdmin() {
 
       {/* ── KPI Grid — joined borders ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border mt-px">
-        <KpiCard title="Total colis"       icon={Package}       value={String(data.colis.total)}        subtitle={`${data.colis.enTransit} en transit`} />
-        <KpiCard title="Livrés"            icon={CheckCircle}   value={String(data.colis.livre)}        variant="success" />
-        <KpiCard title="Litiges"           icon={AlertTriangle} value={String(data.colis.litige)}       variant="warning" />
-        <KpiCard title="Annulés"           icon={XCircle}       value={String(data.colis.annule)}       variant="destructive" />
+        <KpiCard title="Total colis"       icon={Package}       value={String(data.colis.total)}                     subtitle={`${data.colis.enTransit} en transit`} />
+        <KpiCard title="Livrés"            icon={CheckCircle}   value={String(data.colis.livre)}                     variant="success" />
+        <KpiCard title="Litiges"           icon={AlertTriangle} value={String(data.colis.litige)}                    variant="warning" />
+        <KpiCard title="En dette"          icon={AlertCircle}   value={amountFormatXOF(data.colis.totalDetteActive)} subtitle={`${data.colis.nbColisEnDette} colis`}  variant="destructive"/>
         <KpiCard title="En transit"        icon={Clock}         value={String(data.colis.enTransit)} />
-        <KpiCard title="Enregistrés"       icon={TrendingUp}    value={String(data.colis.enregistre)}   subtitle="En attente de transit" />
-        <KpiCard title="Colis aujourd'hui" icon={CalendarDays}  value={String(data.aujourd_hui.count)}  subtitle={`${data.aujourd_hui.poids} kg`} />
+        <KpiCard title="Enregistrés"       icon={TrendingUp}    value={String(data.colis.enregistre)}                subtitle="En attente de transit" />
+        <KpiCard title="Colis aujourd'hui" icon={CalendarDays}  value={String(data.aujourd_hui.count)}               subtitle={`${data.aujourd_hui.poids} kg`} />
         <KpiCard title="Agents"            icon={Users}         value={String(data.agents.total)} />
+        
       </div>
 
       {/* ── Charts ── */}

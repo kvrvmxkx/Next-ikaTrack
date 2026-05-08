@@ -68,6 +68,7 @@ export default function CaissePage() {
   const { data: session } = authClient.useSession();
   const role = (session?.user as any)?.role ?? "";
   const isSuperAdmin = role === Roles.SUPER_ADMIN;
+  const canRetrait = isSuperAdmin || role === Roles.AGENT_MALI || role === Roles.AGENT_CI;
 
   // Destination : fixe pour les agents, depuis le paramètre pays pour l'admin
   const [dest, setDest] = useState<Destination>("MALI");
@@ -159,7 +160,7 @@ export default function CaissePage() {
               </Button>
             </a>
           )}
-          {isSuperAdmin && (
+          {canRetrait && (
             <Button onClick={() => setDialogOpen(true)}>
               <ArrowDownCircle size={14} className="mr-2" />
               Retrait

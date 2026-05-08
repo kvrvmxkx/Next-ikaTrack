@@ -29,23 +29,33 @@ export async function POST(
       return NextResponse.json({ error: "Colis non trouvé" }, { status: 404 });
     }
 
+    const montantVal = parseFloat(montant);
+    const updates: Record<string, unknown> = {};
+
+    if (type === "AVANCE") {
+      const newAvance = colis.avance + montantVal;
+      const newSolde = Math.max(0, colis.solde - montantVal);
+      updates.avance = newAvance;
+      updates.solde = newSolde;
+      updates.avancePaye = true;
+      if (newSolde === 0) {
+        updates.soldePaye = true;
+      }
+    } else if (type === "SOLDE") {
+      const newSolde = Math.max(0, colis.solde - montantVal);
+      updates.solde = newSolde;
+      updates.soldePaye = newSolde === 0;
+    }
+
     const paiement = await prisma.paiement.create({
       data: {
         colisId: colis.id,
         type,
-        montant: parseFloat(montant),
+        montant: montantVal,
         note: note ?? null,
         agentId: session.user.id,
       },
     });
-
-    // Mettre à jour le statut paiement du colis
-    const updates: Record<string, unknown> = {};
-    if (type === "AVANCE") {
-      updates.avancePaye = true;
-    } else if (type === "SOLDE") {
-      updates.soldePaye = true;
-    }
 
     await prisma.colis.update({
       where: { code },

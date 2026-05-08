@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
       colisAujourdhui,
       recentColis,
       colisParMois,
+      dette,
     ] = await Promise.all([
       prisma.colis.count({ where: colisWhere }),
       prisma.colis.count({ where: { ...colisWhere, statut: StatutColis.ENREGISTRE } }),
@@ -65,6 +66,11 @@ export async function GET(request: NextRequest) {
         where: { ...colisWhere, createdAt: { gte: sixMonthsAgo } },
         select: { createdAt: true, prixTotal: true },
       }),
+      prisma.colis.aggregate({
+        where: { ...colisWhere, remisEnDette: true, soldePaye: false },
+        _sum: { solde: true },
+        _count: true,
+      }),
     ]);
 
     const monthlyMap: Record<string, { count: number; revenus: number }> = {};
@@ -88,8 +94,10 @@ export async function GET(request: NextRequest) {
         livre,
         annule,
         litige,
-        revenusAttendus:  revenusData._sum.prixTotal   ?? 0,
+        revenusAttendus:  revenusData._sum.prixTotal  ?? 0,
         revenusEncaisses: paiementsData._sum.montant  ?? 0,
+        totalDetteActive: dette._sum.solde            ?? 0,
+        nbColisEnDette:   dette._count,
       },
       agents: { total: agentsCount },
       aujourd_hui: { count: colisAujourdhui.length, poids: Math.round(totalPoids * 10) / 10 },

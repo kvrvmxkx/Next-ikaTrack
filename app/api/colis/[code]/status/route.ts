@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { sendSMS } from "@/lib/twilio";
 import { getStatutText } from "@/lib/utils";
+import { StatutColis } from "@/lib/enums";
 
 export async function PUT(
   req: NextRequest,
@@ -23,9 +24,21 @@ export async function PUT(
       return NextResponse.json({ error: "Statut requis" }, { status: 400 });
     }
 
+    const updateData: Record<string, unknown> = { statut };
+
+    if (statut === StatutColis.LIVRE) {
+      const current = await prisma.colis.findUnique({
+        where: { code },
+        select: { soldePaye: true },
+      });
+      if (current && !current.soldePaye) {
+        updateData.remisEnDette = true;
+      }
+    }
+
     const colis = await prisma.colis.update({
       where: { code },
-      data: { statut },
+      data: updateData,
     });
 
     // Historique

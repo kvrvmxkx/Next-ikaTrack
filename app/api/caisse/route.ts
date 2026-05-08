@@ -70,12 +70,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || (session.user as any).role !== Roles.SUPER_ADMIN) {
+  const role = (session?.user as any)?.role ?? "";
+
+  if (!session || !ALLOWED_ROLES.includes(role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await request.json();
-  const { montant, motif, note, destination } = body;
+  const { montant, motif, note } = body;
+
+  // Destination : fixe pour les agents, depuis le corps pour l'admin
+  const destination: Destination = ROLE_DEST[role] ?? (body.destination as Destination);
 
   if (!montant || montant <= 0) {
     return NextResponse.json({ error: "Montant invalide" }, { status: 400 });

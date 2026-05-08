@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, Inbox, CheckCircle, AlertTriangle, CreditCard, CalendarDays } from "lucide-react";
+import { Package, Inbox, CheckCircle, AlertTriangle, CreditCard, CalendarDays, AlertCircle } from "lucide-react";
 import KpiCard from "@/components/kpi-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,11 +27,13 @@ type AgentData = {
     soldesEnAttente: number;
     nbColisAttentesPaiement: number;
     soldesJour: number;
+    totalDetteActive: number;
+    nbColisEnDette: number;
   };
   recentColis: {
     id: string; code: string; expediteurEstFournisseur: boolean; expediteurNom: string; destinataireNom: string;
     destination: string; poids: number; prixTotal: number; solde?: number;
-    soldePaye?: boolean; statut: string; createdAt: string;
+    soldePaye?: boolean; remisEnDette?: boolean; statut: string; createdAt: string;
   }[];
 };
 
@@ -105,6 +107,13 @@ export default function DashboardAgent({ role }: { role: string }) {
             value={amountFormatXOF(data.destination.soldesJour)}
             variant="success"
           />
+          <KpiCard
+            title="En dette"
+            icon={AlertCircle}
+            value={amountFormatXOF(data.destination.totalDetteActive)}
+            subtitle={`${data.destination.nbColisEnDette} colis`}
+            variant="destructive"
+          />
         </div>
       )}
 
@@ -129,9 +138,9 @@ export default function DashboardAgent({ role }: { role: string }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.recentColis.length === 0 ? (
+              {(data.recentColis ?? []).length === 0 ? (
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Aucun colis</TableCell></TableRow>
-              ) : data.recentColis.map((c) => (
+              ) : (data.recentColis ?? []).map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>
                     <Link href={`/colis/${c.code}`} className="font-mono text-xs hover:underline">{c.code}</Link>
@@ -145,6 +154,8 @@ export default function DashboardAgent({ role }: { role: string }) {
                     <TableCell className="text-right">
                       {c.soldePaye ? (
                         <span className="text-green-600 text-xs font-medium">Payé</span>
+                      ) : c.remisEnDette ? (
+                        <span className="text-red-500 text-xs font-bold">Dette {amountFormatXOF(c.solde ?? 0)}</span>
                       ) : (
                         <span className="font-medium">{amountFormatXOF(c.solde ?? 0)}</span>
                       )}

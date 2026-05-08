@@ -16,6 +16,7 @@ import StatusBadge from "@/components/status-badge";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -89,6 +90,10 @@ export default function ColisDetailPage() {
 
   // Statut note dialog
   const [statutNote, setStatutNote] = useState("");
+
+  // Confirmation remise en dette
+  const [confirmDetteOpen, setConfirmDetteOpen] = useState(false);
+  const [pendingStatut, setPendingStatut] = useState<string | null>(null);
 
   const fetchColis = async () => {
     setLoading(true);
@@ -167,6 +172,15 @@ export default function ColisDetailPage() {
       toast.error("Erreur lors de la mise à jour", { position: "bottom-right" });
     }
     setUpdatingStatut(false);
+  }
+
+  function handleStatutChange(newStatut: string) {
+    if (newStatut === StatutColis.LIVRE && colis && !colis.soldePaye) {
+      setPendingStatut(newStatut);
+      setConfirmDetteOpen(true);
+    } else {
+      updateStatut(newStatut);
+    }
   }
 
   async function enregistrerPaiement() {
@@ -324,20 +338,31 @@ export default function ColisDetailPage() {
               <span>Prix total</span>
               <span>{amountFormatXOF(colis.prixTotal)}</span>
             </div>
-            <div className="flex justify-between text-green-600">
+            <div className="flex justify-between">
               <span>
                 Avance{" "}
-                {colis.avancePaye && <CheckCircle className="w-3 h-3 inline ml-1" />}
+                {colis.avancePaye && <CheckCircle className="w-3 h-3 inline ml-1 text-green-600" />}
               </span>
               <span className="font-medium">{amountFormatXOF(colis.avance)}</span>
             </div>
             <div className="flex justify-between border-t pt-2 font-medium">
               <span>Solde restant</span>
-              <span className={colis.soldePaye ? "text-green-600" : ""}>
+              <span className={
+                colis.soldePaye
+                  ? "text-green-600"
+                  : (colis as any).remisEnDette
+                  ? "text-red-500"
+                  : "text-yellow-500"
+              }>
                 {amountFormatXOF(colis.solde)}
                 {colis.soldePaye && <CheckCircle className="w-3 h-3 inline ml-1" />}
               </span>
             </div>
+            {(colis as any).remisEnDette && !colis.soldePaye && (
+              <div className="mt-2 px-3 py-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
+                Ce colis a été livré avec un solde impayé — montant en dette
+              </div>
+            )}
 
             {/* Paiements historique */}
             {colis.paiements.length > 0 && (
@@ -391,7 +416,7 @@ export default function ColisDetailPage() {
           <div className="flex gap-3">
             <Select
               defaultValue={colis.statut}
-              onValueChange={updateStatut}
+              onValueChange={handleStatutChange}
               disabled={updatingStatut}
             >
               <SelectTrigger className="flex-1">
@@ -533,6 +558,34 @@ export default function ColisDetailPage() {
               </Button>
             </div>
           </FieldGroup>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog confirmation remise en dette */}
+      <Dialog open={confirmDetteOpen} onOpenChange={setConfirmDetteOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmer la remise en dette</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Ce colis a un solde impayé de{" "}
+            <span className="font-bold text-foreground">{amountFormatXOF(colis?.solde ?? 0)}</span>.
+            En confirmant, le colis sera marqué comme livré et ce montant passera en dette.
+          </p>
+          <DialogFooter className="mt-2">
+            <Button variant="outline" onClick={() => setConfirmDetteOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setConfirmDetteOpen(false);
+                if (pendingStatut) updateStatut(pendingStatut);
+              }}
+            >
+              Confirmer la remise en dette
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

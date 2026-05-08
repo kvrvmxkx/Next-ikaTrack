@@ -62,7 +62,7 @@ export async function GET() {
     // Agent Mali ou CI — vue réception
     const destination = role === Roles.AGENT_MALI ? "MALI" : "COTE_DIVOIRE";
 
-    const [arriveAgence, pretRetirer, litigues, soldesEnAttente, paiementsJour, recentColis] =
+    const [arriveAgence, pretRetirer, litigues, soldesEnAttente, paiementsJour, dette, recentColis] =
       await Promise.all([
         prisma.colis.count({ where: { statut: StatutColis.ARRIVE_AGENCE, destination } }),
         prisma.colis.count({ where: { statut: StatutColis.PRET_RETIRER, destination } }),
@@ -76,6 +76,11 @@ export async function GET() {
           where: { type: "SOLDE", createdAt: { gte: startOfDay }, colis: { destination } },
           _sum: { montant: true },
         }),
+        prisma.colis.aggregate({
+          where: { remisEnDette: true, soldePaye: false, destination },
+          _sum: { solde: true },
+          _count: true,
+        }),
         prisma.colis.findMany({
           take: 8,
           orderBy: { updatedAt: "desc" },
@@ -84,7 +89,7 @@ export async function GET() {
             id: true, code: true, expediteurNom: true,
             destinataireNom: true, destination: true,
             poids: true, prixTotal: true, solde: true, soldePaye: true,
-            statut: true, createdAt: true,
+            remisEnDette: true, statut: true, createdAt: true,
           },
         }),
       ]);
@@ -95,9 +100,11 @@ export async function GET() {
         arriveAgence,
         pretRetirer,
         litigues,
-        soldesEnAttente:        soldesEnAttente._sum.solde ?? 0,
+        soldesEnAttente:         soldesEnAttente._sum.solde ?? 0,
         nbColisAttentesPaiement: soldesEnAttente._count,
-        soldesJour:             paiementsJour._sum.montant ?? 0,
+        soldesJour:              paiementsJour._sum.montant ?? 0,
+        totalDetteActive:        dette._sum.solde ?? 0,
+        nbColisEnDette:          dette._count,
       },
       recentColis,
     });
