@@ -17,8 +17,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Package Tracker — Suivi de colis Chine → Mali & CI",
-  description: "Application de suivi de colis sur l'axe Chine → Mali & Côte d'Ivoire",
+  title: "ikaTrack — Suivi de colis",
+  description: "Application de suivi de colis",
 };
 
 export default async function RootLayout({
