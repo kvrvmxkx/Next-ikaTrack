@@ -47,20 +47,20 @@ export default function LoginPage() {
       <div className="bg-foreground text-background relative hidden lg:flex flex-col justify-between p-12">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-40">
-            Package Tracker
+            Système de suivi de colis
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40 mb-4">
-            Axe Chine
-          </p>
-          <h1 className="text-6xl font-bold font-display leading-none">
-            Mali
-            <br />& Côte d'Ivoire
+          <h1 className="text-6xl font-bold font-display leading-none mb-6">
+            ikaTrack
           </h1>
+         
+          <p className="text-xs opacity-40 leading-relaxed max-w-xs">
+            Plateforme de gestion des colis. Suivez chaque expédition en temps réel, gérez les paiements, les dettes et les groupages, et tenez vos clients informés à chaque étape via SMS automatiques.
+          </p>
         </div>
         <p className="text-[10px] uppercase tracking-[0.2em] opacity-30">
-          Système de suivi de colis
+          Par Ika Services SARL
         </p>
       </div>
 
@@ -68,7 +68,7 @@ export default function LoginPage() {
       <div className="flex flex-col p-6 md:p-12">
         {/* Mobile header */}
         <div className="flex items-center gap-3 mb-12 lg:hidden">
-          <span className="text-sm font-bold uppercase tracking-[0.2em]">Package Tracker</span>
+          <span className="text-sm font-bold uppercase tracking-[0.2em]">ikaTrack</span>
         </div>
 
         <div className="flex flex-1 items-center justify-center">

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Roles } from "@/lib/enums";
 
@@ -104,8 +105,15 @@ const items: MenuItem[] = [
 
 export function AppSidebar() {
   const router = useRouter();
-
   const { data: session } = authClient.useSession();
+  const [etablissement, setEtablissement] = useState("CF AirCargo");
+
+  useEffect(() => {
+    fetch("/api/parametres")
+      .then((r) => r.json())
+      .then((d) => { if (d.etablissement) setEtablissement(d.etablissement); })
+      .catch(() => {});
+  }, []);
 
   async function logout() {
     await authClient.signOut({
@@ -126,10 +134,10 @@ export function AppSidebar() {
       <SidebarHeader className="px-6 py-8">
         <div>
           <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-sidebar-foreground/40 mb-1">
-            Package Tracker
+            ikaTrack
           </p>
           <p className="text-[10px] uppercase tracking-[0.15em] text-sidebar-foreground/30">
-            Chine → Mali & CI
+            {etablissement}
           </p>
         </div>
       </SidebarHeader>

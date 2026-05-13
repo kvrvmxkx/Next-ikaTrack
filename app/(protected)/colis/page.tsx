@@ -35,6 +35,7 @@ import { Roles, StatutColis } from "@/lib/enums";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { getActiveDestination } from "@/lib/form-settings";
 
 
 const STATUTS = [
@@ -66,6 +67,7 @@ export default function ColisPage() {
   const { data: session } = authClient.useSession();
   const role = (session?.user as any)?.role ?? "";
   const isSuperAdmin = role === Roles.SUPER_ADMIN;
+
 
   const [appSettings, setAppSettings] = useState<AppSettings>({ agentsCanEditColis: false, agentsCanDeleteColis: false });
 
@@ -175,7 +177,9 @@ export default function ColisPage() {
 
     const matchExpress = !filterExpress || (c as any).express === true;
     const matchDette = !filterDette || ((c as any).remisEnDette === true && !c.soldePaye);
-    return matchSearch && matchStatut && matchExpress && matchDette;
+    const needsDestFilter = role === Roles.SUPER_ADMIN || role === Roles.AGENT_CHINE;
+    const matchDest = !needsDestFilter || c.destination === getActiveDestination();
+    return matchSearch && matchStatut && matchExpress && matchDette && matchDest;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));

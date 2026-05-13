@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Settings, ShieldCheck, Globe } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Settings, ShieldCheck, Globe, Building2 } from "lucide-react";
 import { getFormSettings, saveFormSettings, getActiveDestination, saveActiveDestination, type FormSettings, type ActiveDestination } from "@/lib/form-settings";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Roles } from "@/lib/enums";
 
-type AppSettings = { agentsCanEditColis: boolean; agentsCanDeleteColis: boolean };
+type AppSettings = { agentsCanEditColis: boolean; agentsCanDeleteColis: boolean; etablissement: string };
 
 const CHAMPS = [
   {
@@ -41,11 +43,16 @@ export default function ParametresPage() {
   const [settings, setSettings] = useState<FormSettings | null>(null);
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
   const [activeDestination, setActiveDestination] = useState<ActiveDestination>("MALI");
+  const [etablissementInput, setEtablissementInput] = useState("");
+  const etablissementSaving = useRef(false);
 
   useEffect(() => {
     setSettings(getFormSettings());
     setActiveDestination(getActiveDestination());
-    fetch("/api/parametres").then((r) => r.json()).then(setAppSettings);
+    fetch("/api/parametres").then((r) => r.json()).then((d) => {
+      setAppSettings(d);
+      setEtablissementInput(d.etablissement ?? "CF AirCargo");
+    });
   }, []);
 
   function changeDestination(dest: ActiveDestination) {
@@ -60,6 +67,18 @@ export default function ParametresPage() {
     setSettings(next);
     saveFormSettings(next);
     toast.success("Paramètre mis à jour", { position: "bottom-right" });
+  }
+
+  async function saveEtablissement() {
+    if (etablissementSaving.current) return;
+    etablissementSaving.current = true;
+    await fetch("/api/parametres", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etablissement: etablissementInput.trim() }),
+    });
+    etablissementSaving.current = false;
+    toast.success("Établissement mis à jour", { position: "bottom-right" });
   }
 
   async function toggleAppSetting(key: keyof AppSettings) {
@@ -105,6 +124,33 @@ export default function ParametresPage() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Établissement — SUPER_ADMIN uniquement */}
+      {isSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              Établissement
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Nom de l&apos;établissement utilisé dans les SMS et communications.
+            </p>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <Input
+              value={etablissementInput}
+              onChange={(e) => setEtablissementInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveEtablissement()}
+              placeholder="CF AirCargo"
+              className="flex-1"
+            />
+            <Button variant="outline" onClick={saveEtablissement}>
+              Enregistrer
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Permissions agents — SUPER_ADMIN uniquement */}
       {isSuperAdmin && (

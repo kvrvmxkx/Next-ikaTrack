@@ -15,7 +15,12 @@
       "Read(//Users/karamokocoulibaly/Desktop/Apps/**)",
       "Bash(npm run:*)",
       "Bash(mkdir -p \"/Users/karamokocoulibaly/Desktop/Apps/package-tracker/app/api/groupes/[code]\")",
-      "Bash(mkdir -p \"/Users/karamokocoulibaly/Desktop/Apps/package-tracker/app/\\(protected\\)/colis/groupe/[code]\")"
+      "Bash(mkdir -p \"/Users/karamokocoulibaly/Desktop/Apps/package-tracker/app/\\(protected\\)/colis/groupe/[code]\")",
+      "WebFetch(domain:developer.orange.com)",
+      "Bash(sed -i '' 's|from \"@/lib/twilio\"|from \"@/lib/sms\"|g' \\\\ *)"
+    ],
+    "additionalDirectories": [
+      "/Users/karamokocoulibaly/Desktop/Apps/package-tracker/app/api/colis/[code]/status"
     ]
   }
 }

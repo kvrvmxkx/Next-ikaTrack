@@ -4,7 +4,8 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { generateColisCode, generatePublicToken } from "@/lib/utils";
 import { Roles, StatutColis } from "@/lib/enums";
-import { sendSMS } from "@/lib/twilio";
+import { sendSMS } from "@/lib/sms";
+import { getEtablissement } from "@/lib/settings";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -151,11 +152,13 @@ export async function POST(request: NextRequest) {
         if (!c) return;
         const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
         const suivi  = `${appUrl}/suivi/${c.tokenPublic}`;
-        const tasks = [
-          sendSMS(c.destinatairePhone, `Un colis vous est destiné depuis la Chine. Code: ${c.code}. Suivez: ${suivi}`),
+        const nom    = await getEtablissement();
+        const sig    = `\n— ${nom}`;
+        const tasks  = [
+          sendSMS(c.destinatairePhone, `Un colis vous est destiné depuis la Chine. Code: ${c.code}. Suivez: ${suivi}${sig}`),
         ];
         if (c.expediteurPhone) {
-          tasks.push(sendSMS(c.expediteurPhone, `Votre colis a été enregistré. Code: ${c.code}. Suivi: ${suivi}`));
+          tasks.push(sendSMS(c.expediteurPhone, `Votre colis a été enregistré. Code: ${c.code}. Suivi: ${suivi}${sig}`));
         }
         await Promise.all(tasks);
       })

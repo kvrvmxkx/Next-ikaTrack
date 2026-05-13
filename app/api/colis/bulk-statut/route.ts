@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { sendSMSBulk } from "@/lib/twilio";
+import { sendSMSBulk } from "@/lib/sms";
+import { getEtablissement } from "@/lib/settings";
 import { getStatutText } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
@@ -45,22 +46,25 @@ export async function POST(req: NextRequest) {
         })),
       });
 
-      // SMS fire & forget — envoi séquentiel pour respecter le rate limit Twilio
-      prisma.colis
-        .findMany({
+      // SMS fire & forget — envoi séquentiel pour respecter le rate limit Orange (5 req/s)
+      Promise.all([
+        prisma.colis.findMany({
           where: { id: { in: updated.map((c) => c.id) } },
           select: { code: true, destinatairePhone: true, tokenPublic: true, destination: true },
-        })
-        .then((colis) => {
+        }),
+        getEtablissement(),
+      ])
+        .then(([colis, nom]) => {
           const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+          const sig    = `\n— ${nom}`;
           const messages = colis.map((c) => ({
-            to: c.destinatairePhone,
-            body: `Votre colis ${c.code} est maintenant: ${getStatutText(toStatut)}. Suivi: ${appUrl}/suivi/${c.tokenPublic}`,
+            to:      c.destinatairePhone,
+            body:    `Votre colis ${c.code} est maintenant: ${getStatutText(toStatut)}. Suivi: ${appUrl}/suivi/${c.tokenPublic}${sig}`,
             country: c.destination === "COTE_DIVOIRE" ? ("CI" as const) : ("ML" as const),
           }));
           return sendSMSBulk(messages);
         })
-        .catch((err) => console.error("[Twilio] Erreur envoi SMS groupé:", err));
+        .catch((err) => console.error("[Orange] Erreur envoi SMS groupé:", err));
     }
 
     return NextResponse.json({ count });

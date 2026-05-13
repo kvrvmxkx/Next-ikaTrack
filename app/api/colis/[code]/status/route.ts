@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { sendSMS } from "@/lib/twilio";
+import { sendSMS } from "@/lib/sms";
+import { getEtablissement } from "@/lib/settings";
 import { getStatutText } from "@/lib/utils";
 import { StatutColis } from "@/lib/enums";
 
@@ -57,7 +58,8 @@ export async function PUT(
       .then(async (c) => {
         if (!c) return;
         const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-        const msg = `Votre colis ${c.code} est maintenant: ${getStatutText(statut)}. Suivi: ${appUrl}/suivi/${c.tokenPublic}`;
+        const nom    = await getEtablissement();
+        const msg    = `Votre colis ${c.code} est maintenant: ${getStatutText(statut)}. Suivi: ${appUrl}/suivi/${c.tokenPublic}\n— ${nom}`;
         await sendSMS(c.destinatairePhone, msg);
       })
       .catch((err) => console.error("SMS error:", err));
