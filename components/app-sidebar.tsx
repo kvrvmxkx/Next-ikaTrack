@@ -28,6 +28,7 @@ import {
   Tag,
   Vault,
   Settings,
+  MessageCircle,
   LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -89,6 +90,12 @@ const items: MenuItem[] = [
     url: "/caisse",
     icon: Vault,
     roles: [Roles.SUPER_ADMIN, Roles.AGENT_MALI, Roles.AGENT_CI],
+  },
+  {
+    title: "WhatsApp",
+    url: "/whatsapp",
+    icon: MessageCircle,
+    roles: [Roles.SUPER_ADMIN],
   },
   {
     title: "Paramètres",

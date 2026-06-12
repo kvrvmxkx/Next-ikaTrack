@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         })),
       });
 
-      // SMS fire & forget — envoi séquentiel pour respecter le rate limit Orange (5 req/s)
+      // WhatsApp fire & forget — envoi séquentiel avec délai entre chaque message
       Promise.all([
         prisma.colis.findMany({
           where: { id: { in: updated.map((c) => c.id) } },
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
           }));
           return sendSMSBulk(messages);
         })
-        .catch((err) => console.error("[Orange] Erreur envoi SMS groupé:", err));
+        .catch((err) => console.error("[Wasender] Erreur envoi groupé:", err));
     }
 
     return NextResponse.json({ count });

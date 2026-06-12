@@ -287,6 +287,23 @@ model Retrait {
   @@index([destination])
 }
 
+// ─── WhatsApp Logs ────────────────────────────────────────────
+
+model WhatsappLog {
+  id         String   @id @default(cuid())
+  event      String   // "message.status" | "message.received" | …
+  messageId  String?
+  phone      String
+  status     String?  // "sent" | "delivered" | "read" | "failed"
+  message    String?  @db.Text
+  rawPayload String   @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([phone])
+  @@index([messageId])
+  @@index([createdAt])
+}
+
 // ─── Paramètres globaux ───────────────────────────────────────
 
 model AppSetting {

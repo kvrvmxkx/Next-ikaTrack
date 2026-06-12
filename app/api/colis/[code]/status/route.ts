@@ -59,8 +59,9 @@ export async function PUT(
         if (!c) return;
         const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
         const nom    = await getEtablissement();
+        const country = c.destination === "COTE_DIVOIRE" ? "CI" as const : "ML" as const;
         const msg    = `Votre colis ${c.code} est maintenant: ${getStatutText(statut)}. Suivi: ${appUrl}/suivi/${c.tokenPublic}\n— ${nom}`;
-        await sendSMS(c.destinatairePhone, msg);
+        await sendSMS(c.destinatairePhone, msg, country);
       })
       .catch((err) => console.error("SMS error:", err));
 

@@ -154,11 +154,12 @@ export async function POST(request: NextRequest) {
         const suivi  = `${appUrl}/suivi/${c.tokenPublic}`;
         const nom    = await getEtablissement();
         const sig    = `\n— ${nom}`;
+        const country = c.destination === "COTE_DIVOIRE" ? "CI" as const : "ML" as const;
         const tasks  = [
-          sendSMS(c.destinatairePhone, `Un colis vous est destiné depuis la Chine. Code: ${c.code}. Suivez: ${suivi}${sig}`),
+          sendSMS(c.destinatairePhone, `Un colis vous est destiné depuis la Chine. Code: ${c.code}. Suivez: ${suivi}${sig}`, country),
         ];
-        if (c.expediteurPhone) {
-          tasks.push(sendSMS(c.expediteurPhone, `Votre colis a été enregistré. Code: ${c.code}. Suivi: ${suivi}${sig}`));
+        if (!c.expediteurEstFournisseur && c.expediteurPhone) {
+          tasks.push(sendSMS(c.expediteurPhone, `Votre colis a été enregistré. Code: ${c.code}. Suivi: ${suivi}${sig}`, country));
         }
         await Promise.all(tasks);
       })

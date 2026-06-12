@@ -1,4 +1,4 @@
-const WASENDER_API_URL = "https://api.wasender.app/api/send-message";
+const WASENDER_API_URL = "https://www.wasenderapi.com/api/send-message";
 
 function normalizePhone(phone: string, country?: "ML" | "CI"): string {
   let p = phone.trim().replace(/\s+/g, "");
@@ -48,7 +48,7 @@ export async function sendSMS(
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ phoneNumber: normalized, message: body }),
+      body: JSON.stringify({ to: normalized, text: body }),
     });
 
     const responseText = await res.text();
