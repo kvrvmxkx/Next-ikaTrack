@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Settings, ShieldCheck, Globe, Building2 } from "lucide-react";
+import { Settings, ShieldCheck, Globe, Building2, Power } from "lucide-react";
 import { getFormSettings, saveFormSettings, getActiveDestination, saveActiveDestination, type FormSettings, type ActiveDestination } from "@/lib/form-settings";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-import { Roles } from "@/lib/enums";
+import { Roles, isAdmin } from "@/lib/enums";
 
-type AppSettings = { agentsCanEditColis: boolean; agentsCanDeleteColis: boolean; etablissement: string };
+type AppSettings = { agentsCanEditColis: boolean; agentsCanDeleteColis: boolean; maintenanceMode: boolean; etablissement: string };
 
 const CHAMPS = [
   {
@@ -38,7 +38,9 @@ const CHAMPS = [
 
 export default function ParametresPage() {
   const { data: session } = authClient.useSession();
-  const isSuperAdmin = (session?.user as any)?.role === Roles.SUPER_ADMIN;
+  const role = (session?.user as any)?.role ?? "";
+  const isSuperAdmin = isAdmin(role);
+  const isRealSuperAdmin = role === Roles.SUPER_ADMIN;
 
   const [settings, setSettings] = useState<FormSettings | null>(null);
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
@@ -125,7 +127,7 @@ export default function ParametresPage() {
         </CardContent>
       </Card>
 
-      {/* Établissement — SUPER_ADMIN uniquement */}
+      {/* Établissement — Admin uniquement */}
       {isSuperAdmin && (
         <Card>
           <CardHeader>
@@ -152,7 +154,7 @@ export default function ParametresPage() {
         </Card>
       )}
 
-      {/* Permissions agents — SUPER_ADMIN uniquement */}
+      {/* Permissions agents — Admin uniquement */}
       {isSuperAdmin && (
         <Card>
           <CardHeader>
@@ -198,6 +200,47 @@ export default function ParametresPage() {
                   />
                 </div>
               </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Mode maintenance — SUPER_ADMIN uniquement */}
+      {isRealSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Power className="w-4 h-4" />
+              Maintenance
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Rend l&apos;application inaccessible à tous les utilisateurs sauf vous.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {appSettings === null ? (
+              <div className="py-4 flex items-center justify-between animate-pulse">
+                <div className="space-y-1.5">
+                  <div className="h-4 w-40 bg-muted rounded" />
+                  <div className="h-3 w-56 bg-muted rounded" />
+                </div>
+                <div className="h-6 w-10 bg-muted rounded-full" />
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium">Application indisponible</p>
+                  <p className="text-xs text-muted-foreground">
+                    {appSettings.maintenanceMode
+                      ? "L'application est actuellement en maintenance."
+                      : "L'application est accessible normalement."}
+                  </p>
+                </div>
+                <Switch
+                  checked={appSettings.maintenanceMode}
+                  onCheckedChange={() => toggleAppSetting("maintenanceMode")}
+                />
+              </div>
             )}
           </CardContent>
         </Card>

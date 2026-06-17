@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { Roles } from "@/lib/enums";
+import { isAdmin } from "@/lib/enums";
 
 export async function PUT(
   req: NextRequest,
@@ -11,7 +11,7 @@ export async function PUT(
   const { id } = await params;
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || session.user.role !== Roles.SUPER_ADMIN) {
+  if (!session || !isAdmin((session.user as any).role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -52,7 +52,7 @@ export async function DELETE(
   const { id } = await params;
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || session.user.role !== Roles.SUPER_ADMIN) {
+  if (!session || !isAdmin((session.user as any).role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

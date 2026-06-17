@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { Roles } from "@/lib/enums";
+import { isAdmin } from "@/lib/enums";
 
 async function getSetting(key: string): Promise<boolean> {
   const row = await prisma.appSetting.findUnique({ where: { key } });
@@ -58,7 +58,7 @@ export async function PUT(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
   const role = (session.user as any).role;
-  if (role !== Roles.SUPER_ADMIN) {
+  if (!isAdmin(role)) {
     const allowed = await getSetting("agentsCanEditColis");
     if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -99,7 +99,7 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
 
   const role = (session.user as any).role;
-  if (role !== Roles.SUPER_ADMIN) {
+  if (!isAdmin(role)) {
     const allowed = await getSetting("agentsCanDeleteColis");
     if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

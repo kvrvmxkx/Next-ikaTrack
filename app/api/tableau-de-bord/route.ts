@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { Roles, StatutColis } from "@/lib/enums";
+import { StatutColis, isAdmin } from "@/lib/enums";
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || (session.user as any).role !== Roles.SUPER_ADMIN) {
+  if (!session || !isAdmin((session.user as any).role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

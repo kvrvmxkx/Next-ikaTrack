@@ -28,7 +28,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { Roles } from "@/lib/enums";
+import { Roles, isAdmin } from "@/lib/enums";
 import { getActiveDestination, type ActiveDestination } from "@/lib/form-settings";
 
 type Destination = "MALI" | "COTE_DIVOIRE";
@@ -67,7 +67,7 @@ const ROLE_DEST: Record<string, Destination> = {
 export default function CaissePage() {
   const { data: session } = authClient.useSession();
   const role = (session?.user as any)?.role ?? "";
-  const isSuperAdmin = role === Roles.SUPER_ADMIN;
+  const isSuperAdmin = isAdmin(role);
   const canRetrait = isSuperAdmin || role === Roles.AGENT_MALI || role === Roles.AGENT_CI;
 
   // Destination : fixe pour les agents, depuis le paramètre pays pour l'admin

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { Roles, StatutColis } from "@/lib/enums";
+import { Roles, StatutColis, isAdmin } from "@/lib/enums";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   const role = (session.user as any).role;
-  if (role === Roles.SUPER_ADMIN) {
+  if (isAdmin(role)) {
     return NextResponse.json({ error: "Use /api/tableau-de-bord" }, { status: 400 });
   }
 

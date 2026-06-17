@@ -2,12 +2,12 @@ import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { Roles } from "@/lib/enums";
+import { Roles, isAdmin } from "@/lib/enums";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || session.user.role !== Roles.SUPER_ADMIN) {
+  if (!session || !isAdmin((session.user as any).role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -36,13 +36,18 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session || session.user.role !== Roles.SUPER_ADMIN) {
+  if (!session || !isAdmin((session.user as any).role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
     const { firstname, lastname, email, phone, password, role } =
       await req.json();
+
+    const callerRole = (session.user as any).role;
+    if (callerRole === Roles.ADMIN && role === Roles.SUPER_ADMIN) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     // Create via Better Auth
     const result = await auth.api.signUpEmail({

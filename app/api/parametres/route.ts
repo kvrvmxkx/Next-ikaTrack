@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { Roles } from "@/lib/enums";
+import { Roles, isAdmin } from "@/lib/enums";
 
-const BOOL_KEYS = ["agentsCanEditColis", "agentsCanDeleteColis"] as const;
-const STR_KEYS  = ["etablissement"] as const;
-type BoolKey = (typeof BOOL_KEYS)[number];
+const BOOL_KEYS          = ["agentsCanEditColis", "agentsCanDeleteColis", "maintenanceMode"] as const;
+const SUPER_ADMIN_KEYS   = ["maintenanceMode"] as const;
+const STR_KEYS           = ["etablissement"] as const;
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -19,6 +19,7 @@ export async function GET() {
   const result: Record<string, boolean | string> = {
     agentsCanEditColis:   false,
     agentsCanDeleteColis: false,
+    maintenanceMode:      false,
     etablissement:        "CF AirCargo",
   };
 
@@ -35,14 +36,22 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || (session.user as any).role !== Roles.SUPER_ADMIN) {
+  if (!session || !isAdmin((session.user as any).role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const callerRole = (session.user as any).role;
   const body = await req.json();
 
+  const allowedBoolKeys = BOOL_KEYS.filter((k) => {
+    if ((SUPER_ADMIN_KEYS as readonly string[]).includes(k)) {
+      return callerRole === Roles.SUPER_ADMIN;
+    }
+    return true;
+  });
+
   await Promise.all([
-    ...BOOL_KEYS.filter((k) => k in body).map((k) =>
+    ...allowedBoolKeys.filter((k) => k in body).map((k) =>
       prisma.appSetting.upsert({
         where:  { key: k },
         update: { value: String(!!body[k]) },

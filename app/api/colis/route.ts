@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { generateColisCode, generatePublicToken } from "@/lib/utils";
-import { Roles, StatutColis } from "@/lib/enums";
+import { Roles, StatutColis, isAdmin } from "@/lib/enums";
 import { sendSMS } from "@/lib/sms";
 import { getEtablissement } from "@/lib/settings";
 
@@ -18,7 +18,7 @@ export async function GET() {
     let colis;
     const role = (session.user as any).role;
 
-    if (role === Roles.SUPER_ADMIN || role === Roles.AGENT_CHINE) {
+    if (isAdmin(role) || role === Roles.AGENT_CHINE) {
       colis = await prisma.colis.findMany({
         orderBy: { createdAt: "desc" },
         include: { agent: true, agenceOrigine: true, agenceDestination: true },

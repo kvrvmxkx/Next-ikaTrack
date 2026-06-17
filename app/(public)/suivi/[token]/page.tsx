@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { isMaintenanceMode } from "@/lib/settings";
 import {
   getStatutText,
   getRelativeTimeWithPrefix,
@@ -24,6 +25,8 @@ export default async function SuiviPublicPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+
+  if (await isMaintenanceMode()) redirect("/maintenance");
 
   const colis = await prisma.colis.findUnique({
     where: { tokenPublic: token },

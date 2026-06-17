@@ -11,7 +11,7 @@ const ROLE_DEST: Record<string, Destination> = {
   [Roles.AGENT_CI]: "COTE_DIVOIRE",
 };
 
-const ALLOWED_ROLES = [Roles.SUPER_ADMIN, Roles.AGENT_MALI, Roles.AGENT_CI];
+const ALLOWED_ROLES = [Roles.SUPER_ADMIN, Roles.ADMIN, Roles.AGENT_MALI, Roles.AGENT_CI];
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });

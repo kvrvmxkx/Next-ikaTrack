@@ -31,7 +31,7 @@ import StatusBadge from "@/components/status-badge";
 import { Plus, Search, Eye, ExternalLink, Filter, ChevronLeft, ChevronRight, Trash2, ArrowRightLeft, Loader2, Pencil } from "lucide-react";
 import Link from "next/link";
 import { amountFormatXOF, getDestinationText } from "@/lib/utils";
-import { Roles, StatutColis } from "@/lib/enums";
+import { Roles, StatutColis, isAdmin } from "@/lib/enums";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -66,7 +66,7 @@ type EditForm = { poids: string; expediteurNom: string; expediteurPhone: string;
 export default function ColisPage() {
   const { data: session } = authClient.useSession();
   const role = (session?.user as any)?.role ?? "";
-  const isSuperAdmin = role === Roles.SUPER_ADMIN;
+  const isSuperAdmin = isAdmin(role);
 
 
   const [appSettings, setAppSettings] = useState<AppSettings>({ agentsCanEditColis: false, agentsCanDeleteColis: false });
@@ -177,7 +177,7 @@ export default function ColisPage() {
 
     const matchExpress = !filterExpress || (c as any).express === true;
     const matchDette = !filterDette || ((c as any).remisEnDette === true && !c.soldePaye);
-    const needsDestFilter = role === Roles.SUPER_ADMIN || role === Roles.AGENT_CHINE;
+    const needsDestFilter = isAdmin(role) || role === Roles.AGENT_CHINE;
     const matchDest = !needsDestFilter || c.destination === getActiveDestination();
     return matchSearch && matchStatut && matchExpress && matchDette && matchDest;
   });

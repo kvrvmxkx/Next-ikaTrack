@@ -1,7 +1,7 @@
 "use client";
 
 import { authClient } from "@/lib/auth-client";
-import { Roles } from "@/lib/enums";
+import { isAdmin } from "@/lib/enums";
 import DashboardSuperAdmin from "@/components/dashboard/dashboard-super-admin";
 import DashboardAgent from "@/components/dashboard/dashboard-agent";
 
@@ -22,7 +22,7 @@ export default function TableauDeBordPage() {
     );
   }
 
-  if (role === Roles.SUPER_ADMIN) {
+  if (isAdmin(role)) {
     return <DashboardSuperAdmin />;
   }
 

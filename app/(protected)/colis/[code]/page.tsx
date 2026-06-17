@@ -42,7 +42,7 @@ import {
   getRelativeTimeWithPrefix,
   getStatutText,
 } from "@/lib/utils";
-import { Roles, StatutColis, TypePaiement } from "@/lib/enums";
+import { Roles, StatutColis, TypePaiement, isAdmin } from "@/lib/enums";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import type { ColisWithRelations } from "@/lib/types";
@@ -63,7 +63,7 @@ export default function ColisDetailPage() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const role = (session?.user as any)?.role ?? "";
-  const isSuperAdmin = role === Roles.SUPER_ADMIN;
+  const isSuperAdmin = isAdmin(role);
 
   const [appSettings, setAppSettings] = useState<{ agentsCanEditColis: boolean; agentsCanDeleteColis: boolean }>({ agentsCanEditColis: false, agentsCanDeleteColis: false });
   const [colis, setColis] = useState<ColisWithRelations | null>(null);

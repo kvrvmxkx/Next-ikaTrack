@@ -33,11 +33,12 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 import { userSchema } from "@/lib/validation-schema";
-import { Roles } from "@/lib/enums";
+import { Roles, isAdmin } from "@/lib/enums";
 import { toast } from "sonner";
 
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: "Super Admin",
+  ADMIN: "Admin",
   AGENT_CHINE: "Agent Chine",
   AGENT_MALI: "Agent Mali",
   AGENT_CI: "Agent CI",
@@ -308,6 +309,9 @@ export default function UtilisateursPage() {
                       <SelectContent>
                         <SelectItem value={Roles.SUPER_ADMIN}>
                           Super Admin
+                        </SelectItem>
+                        <SelectItem value={Roles.ADMIN}>
+                          Admin
                         </SelectItem>
                         <SelectItem value={Roles.AGENT_CHINE}>
                           Agent Chine

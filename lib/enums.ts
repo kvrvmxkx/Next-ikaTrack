@@ -1,8 +1,13 @@
 export enum Roles {
   SUPER_ADMIN = "SUPER_ADMIN",
+  ADMIN = "ADMIN",
   AGENT_CHINE = "AGENT_CHINE",
   AGENT_MALI = "AGENT_MALI",
   AGENT_CI = "AGENT_CI",
+}
+
+export function isAdmin(role: string): boolean {
+  return role === Roles.SUPER_ADMIN || role === Roles.ADMIN;
 }
 
 export enum StatutColis {
