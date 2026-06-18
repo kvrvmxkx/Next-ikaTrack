@@ -66,7 +66,7 @@ export async function sendSMS(
 
 export async function sendSMSBulk(
   messages: Array<{ to: string; body: string; country?: "ML" | "CI" }>,
-  delayMs = 200
+  delayMs = 3000
 ): Promise<void> {
   for (const msg of messages) {
     await sendSMS(msg.to, msg.body, msg.country);

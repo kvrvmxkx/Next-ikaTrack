@@ -17,7 +17,9 @@
       "Bash(mkdir -p \"/Users/karamokocoulibaly/Desktop/Apps/package-tracker/app/api/groupes/[code]\")",
       "Bash(mkdir -p \"/Users/karamokocoulibaly/Desktop/Apps/package-tracker/app/\\(protected\\)/colis/groupe/[code]\")",
       "WebFetch(domain:developer.orange.com)",
-      "Bash(sed -i '' 's|from \"@/lib/twilio\"|from \"@/lib/sms\"|g' \\\\ *)"
+      "Bash(sed -i '' 's|from \"@/lib/twilio\"|from \"@/lib/sms\"|g' \\\\ *)",
+      "WebFetch(domain:wasenderapi.com)",
+      "WebFetch(domain:www.wasenderapi.com)"
     ],
     "additionalDirectories": [
       "/Users/karamokocoulibaly/Desktop/Apps/package-tracker/app/api/colis/[code]/status"
