@@ -25,6 +25,7 @@ import { TrendingUp, TrendingDown, Wallet, ArrowDownCircle, Download } from "luc
 import { amountFormatXOF } from "@/lib/utils";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
+import { MAX_RETRAIT_XOF } from "@/lib/validation-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -51,7 +52,17 @@ interface CaisseData {
 }
 
 const retraitSchema = z.object({
-  montant: z.string().min(1, "Montant requis"),
+  montant: z
+    .string()
+    .min(1, "Montant requis")
+    .refine((v) => {
+      const n = parseFloat(v);
+      return !isNaN(n) && n > 0;
+    }, "Montant invalide")
+    .refine(
+      (v) => parseFloat(v) <= MAX_RETRAIT_XOF,
+      `Montant maximum : ${MAX_RETRAIT_XOF.toLocaleString("fr-FR")} XOF — vérifie la saisie`
+    ),
   motif: z.string().min(3, "Motif requis (min. 3 caractères)"),
   note: z.string().optional(),
 });

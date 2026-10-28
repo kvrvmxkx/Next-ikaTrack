@@ -6,6 +6,7 @@ import { generateColisCode, generatePublicToken } from "@/lib/utils";
 import { Roles, StatutColis, isAdmin } from "@/lib/enums";
 import { sendSuiviColis } from "@/lib/whatsapp";
 import { getEtablissement } from "@/lib/settings";
+import { MAX_POIDS_KG, MAX_PRIX_XOF } from "@/lib/validation-schema";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -80,9 +81,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Informations expéditeur requises" }, { status: 400 });
     }
 
+    const poidsVal     = parseFloat(poids);
     const avanceVal    = parseFloat(avance ?? 0);
     const prixTotalVal = parseFloat(prixTotal ?? 0);
     const solde        = Math.max(0, prixTotalVal - avanceVal);
+
+    if (isNaN(poidsVal) || poidsVal <= 0 || poidsVal > MAX_POIDS_KG) {
+      return NextResponse.json(
+        { error: `Poids invalide (maximum ${MAX_POIDS_KG} kg) — vérifie la saisie` },
+        { status: 400 }
+      );
+    }
+    if (prixTotalVal > MAX_PRIX_XOF || avanceVal > MAX_PRIX_XOF) {
+      return NextResponse.json(
+        { error: `Montant invalide (maximum ${MAX_PRIX_XOF.toLocaleString("fr-FR")} XOF) — vérifie la saisie` },
+        { status: 400 }
+      );
+    }
 
     // Générer un code unique — retry en cas de collision
     let code: string;

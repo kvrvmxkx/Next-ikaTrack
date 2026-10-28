@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { Roles } from "@/lib/enums";
+import { MAX_RETRAIT_XOF } from "@/lib/validation-schema";
 
 type Destination = "MALI" | "COTE_DIVOIRE";
 
@@ -84,6 +85,12 @@ export async function POST(request: NextRequest) {
 
   if (!montant || montant <= 0) {
     return NextResponse.json({ error: "Montant invalide" }, { status: 400 });
+  }
+  if (montant > MAX_RETRAIT_XOF) {
+    return NextResponse.json(
+      { error: `Montant maximum par retrait : ${MAX_RETRAIT_XOF.toLocaleString("fr-FR")} XOF — vérifie la saisie` },
+      { status: 400 }
+    );
   }
   if (!motif || motif.trim() === "") {
     return NextResponse.json({ error: "Motif requis" }, { status: 400 });

@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { Destination } from "./enums";
 
+// Garde-fous de saisie — deux colis ont été enregistrés avec un téléphone
+// ou un prix tapé dans le champ poids (74 000 688 kg, 19 200 kg)
+export const MAX_POIDS_KG = 1000;
+export const MAX_PRIX_XOF = 10_000_000;
+export const MAX_RETRAIT_XOF = 50_000_000;
+
 // Les inputs HTML type="number" retournent des strings → on garde string + coerce dans onSubmit
 export const colisSchema = z.object({
   description: z.string().optional(),
@@ -19,6 +25,18 @@ export const colisSchema = z.object({
   notes: z.string().optional(),
   express: z.boolean(),
 }).superRefine((data, ctx) => {
+  const poids = parseFloat(data.poids);
+  if (isNaN(poids) || poids <= 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Poids invalide", path: ["poids"] });
+  } else if (poids > MAX_POIDS_KG) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Poids maximum : ${MAX_POIDS_KG} kg — vérifie la saisie`, path: ["poids"] });
+  }
+  if (data.avance) {
+    const avance = parseFloat(data.avance);
+    if (!isNaN(avance) && avance > MAX_PRIX_XOF) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Avance maximum : ${MAX_PRIX_XOF.toLocaleString("fr-FR")} XOF`, path: ["avance"] });
+    }
+  }
   if (!data.expediteurEstFournisseur) {
     if (!data.expediteurNom || data.expediteurNom.length < 2) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Nom expéditeur requis", path: ["expediteurNom"] });

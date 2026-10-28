@@ -140,7 +140,8 @@ export default function ColisDetailPage() {
       setEditOpen(false);
       fetchColis();
     } else {
-      toast.error("Erreur lors de la mise à jour", { position: "bottom-right" });
+      const err = await res.json().catch(() => null);
+      toast.error(err?.error ?? "Erreur lors de la mise à jour", { position: "bottom-right" });
     }
     setEditLoading(false);
   }

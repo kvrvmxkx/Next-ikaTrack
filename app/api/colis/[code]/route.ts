@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/enums";
+import { calculatePrixTotal } from "@/lib/utils";
+import { MAX_POIDS_KG } from "@/lib/validation-schema";
 
 async function getSetting(key: string): Promise<boolean> {
   const row = await prisma.appSetting.findUnique({ where: { key } });
@@ -66,11 +68,38 @@ export async function PUT(
   try {
     const body = await req.json();
 
+    const poidsVal = body.poids !== undefined ? parseFloat(body.poids) : undefined;
+    if (poidsVal !== undefined && (isNaN(poidsVal) || poidsVal <= 0 || poidsVal > MAX_POIDS_KG)) {
+      return NextResponse.json(
+        { error: `Poids invalide (maximum ${MAX_POIDS_KG} kg) — vérifie la saisie` },
+        { status: 400 }
+      );
+    }
+
+    // Si le poids change, recalculer le prix à partir du tarif associé
+    let prixTotal: number | undefined;
+    let solde: number | undefined;
+    if (poidsVal !== undefined) {
+      const existing = await prisma.colis.findUnique({
+        where: { code },
+        include: { tarif: { include: { tranches: true } } },
+      });
+      if (!existing) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+      if (poidsVal !== existing.poids && existing.tarif) {
+        prixTotal = calculatePrixTotal(poidsVal, existing.tarif.tranches);
+        solde = Math.max(0, prixTotal - existing.avance);
+      }
+    }
+
     const colis = await prisma.colis.update({
       where: { code },
       data: {
         description: body.description,
-        poids: body.poids ? parseFloat(body.poids) : undefined,
+        poids: poidsVal,
+        prixTotal,
+        solde,
         expediteurNom: body.expediteurNom,
         expediteurPhone: body.expediteurPhone,
         destinataireNom: body.destinataireNom,
